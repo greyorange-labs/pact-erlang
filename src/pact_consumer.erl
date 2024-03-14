@@ -3,9 +3,11 @@
 -export([
     v4/2,
     interaction/2,
+    msg_interaction/2,
     verify_interaction/1,
     write_interaction/2,
-    cleanup/1
+    cleanup/1,
+    encode_value/1
 ]).
 
 -type consumer() :: binary().
@@ -13,6 +15,7 @@
 -type pact_pid() :: pid().
 -type pact_interaction_details() :: map().
 -type pact_mock_server_port() :: integer().
+-type pact_message_data() :: map().
 
 -spec v4(consumer(), provider()) -> pact_pid().
 v4(Consumer, Provider) ->
@@ -22,6 +25,11 @@ v4(Consumer, Provider) ->
     {ok, pact_mock_server_port()}.
 interaction(PactPid, Interaction) ->
     pact_consumer_http:interaction(PactPid, Interaction).
+
+-spec msg_interaction(pact_pid(), pact_interaction_details()) ->
+    pact_message_data().
+msg_interaction(PactPid, Interaction) ->
+    pact_consumer_msg:interaction(PactPid, Interaction).
 
 -spec verify_interaction(pact_pid()) -> {ok, matched} | {error, not_matched}.
 verify_interaction(PactPid) ->
@@ -38,3 +46,15 @@ write_interaction(PactPid, Path) ->
 cleanup(PactPid) ->
     pact_consumer_http:cleanup_interaction(PactPid),
     pact_ref_server:stop(PactPid).
+
+%% Internal Functions
+
+-spec encode_value(map() | binary()) -> binary().
+encode_value(Value) ->
+    %% Checking if someone used regex_match
+    case is_map(Value) of
+        true ->
+            thoas:encode(Value);
+        false ->
+            Value
+    end.

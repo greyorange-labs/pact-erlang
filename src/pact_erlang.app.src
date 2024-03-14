@@ -4,7 +4,7 @@
     {vsn, "0.2.2"},
     {modules, []},
     {registered, []},
-    {applications, [kernel, stdlib, thoas]},
+    {applications, [kernel, stdlib, thoas, inets]},
     {licenses, ["Apache-2.0"]},
     {links, [{"GitHub", "https://github.com/greyorange-labs/pact-erlang"}]},
     {build_tools, ["rebar3"]},

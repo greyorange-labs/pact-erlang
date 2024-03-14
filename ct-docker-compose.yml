@@ -1,0 +1,38 @@
+version: "3"
+
+services:
+  pact_ct_postgres:
+    container_name: pact_ct_postgres
+    image: postgres
+    healthcheck:
+      # test: ["CMD", "psql", "postgres", "--command", "'select 1'", "-U", "pact_postgres"]
+      test: /usr/bin/pg_isready
+      interval: 5s
+      timeout: 10s
+      retries: 120
+    ports:
+      - "15432:5432"
+    environment:
+      POSTGRES_USER: pact_postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pact_postgres
+      HEALTH_CHECK_PORT: 15432
+
+  pact_ct_broker_app:
+    container_name: pact_ct_broker_app
+    image: pactfoundation/pact-broker
+    depends_on:
+      pact_ct_postgres:
+        condition: service_healthy
+    links: 
+        - pact_ct_postgres
+    ports:
+      - 9292:9292
+    environment:
+      PACT_BROKER_BASIC_AUTH_USERNAME: pact_workshop
+      PACT_BROKER_BASIC_AUTH_PASSWORD: pact_workshop
+      PACT_BROKER_DATABASE_USERNAME: pact_postgres
+      PACT_BROKER_DATABASE_PASSWORD: password
+      PACT_BROKER_DATABASE_HOST: pact_ct_postgres
+      PACT_BROKER_DATABASE_NAME: pact_postgres
+      HEALTH_CHECK_PORT: 9292

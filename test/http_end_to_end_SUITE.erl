@@ -1,11 +1,11 @@
--module(pact_end_to_end_SUITE).
+-module(http_end_to_end_SUITE).
 -compile(nowarn_export_all).
 -compile(export_all).
 
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 
-all() -> [{group, consumer}, {group, producer}].
+all() -> [{group, consumer},{group, producer}].
 
 groups() ->
     [
@@ -14,9 +14,12 @@ groups() ->
     ].
 
 init_per_suite(Config) ->
+    inets:start(),
+    pact:enable_logging(trace),
     Config.
 
 end_per_suite(_Config) ->
+    inets:stop(),
     ok.
 
 init_per_group(consumer, Config) ->
@@ -153,7 +156,6 @@ create_animal(Config) ->
 
 search_animals(Config) ->
     PactRef = ?config(pact_ref, Config),
-    AnimalObj = #{<<"name">> => <<"Mary">>, <<"type">> => <<"alligator">>},
     Result = #{<<"animals">> => [#{<<"name">> => <<"Mary">>, <<"type">> => <<"alligator">>}]},
     Query = #{<<"type">> => <<"alligator">>},
     {ok, Port} = pact:interaction(PactRef,
@@ -179,19 +181,47 @@ search_animals(Config) ->
     pact:write(PactRef).
 
 verify_producer(_Config) ->
-    {ok, Port} = animal_service:start(0),
-    Cmd = "docker run --network host --rm -v ./pacts:/pacts "
-            "-e PACT_DO_NOT_TRACK=true "
-            "pactfoundation/pact-ref-verifier --full-log -l warn "
-            "-s http://localhost:" ++ integer_to_list(Port) ++ "/pactStateChange "
-            "-d /pacts -n animal_service -p " ++ integer_to_list(Port),
-    {RetCode, Output} = run_cmd(Cmd),
-    ct:print("===> Provider Verification Output: ~n~s", [Output]),
-    ?assertEqual(0, RetCode),
-    animal_service:stop().
-
-run_cmd(Cmd) ->
-    Res = os:cmd(Cmd ++ "\nRET_CODE=$?\necho \"\n$RET_CODE\""),
-    [[], RetCode | Rest] = lists:reverse(string:split(Res, "\n", all)),
-    Result = lists:join("\n", lists:reverse(Rest)),
-    {list_to_integer(RetCode), Result}.
+    {ok, Cwd} = file:get_cwd(),
+    PactDirectory = Cwd ++ "/pacts",
+    {0, _} = pact_broker_client:publish_pacts(list_to_binary(PactDirectory)),
+    {ok, Port, HttpdPid} = animal_service:start(8080),
+    unlink(HttpdPid),
+    Name = <<"animal_service">>,
+    Version =  <<"default">>,
+    Scheme = <<"http">>,
+    Host = <<"localhost">>,
+    Path = <<"/">>,
+    Branch = <<"develop">>,
+    FilePath = <<"./pacts">>,
+    Protocol = <<"http">>,
+    StateChangePath = list_to_binary("http://localhost:" ++ integer_to_list(Port) ++ "/pactStateChange"),
+    ProviderOpts = #{
+        name => Name,
+        version => Version,
+        scheme => Scheme,
+        host => Host,
+        port => Port,
+        base_url => Path,
+        branch => Branch,
+        pact_source_opts => #{
+            broker_url => <<"http://localhost:9292/">>,
+            broker_username => <<"pact_workshop">>,
+            broker_password => <<"pact_workshop">>,
+            enable_pending => 1,
+            consumer_version_selectors => thoas:encode(#{})
+        },
+        state_change_url => StateChangePath,
+        % message_providers => #{
+        %     <<"a weather data message">> => {message_pact_SUITE, generate_message, [23.5, 20, 75.0]}
+        % },
+        % fallback_message_provider => {message_pact_SUITE, generate_message, [24.5, 20, 93.0]},
+        protocol => Protocol
+    },
+    {ok, VerifierRef} = pact_verifier:start_verifier(Name, ProviderOpts),
+    Output = pact_verifier:verify(VerifierRef),
+    ProviderOpts1 = ProviderOpts#{pact_source_opts => #{file_path => FilePath}},
+    {ok, VerifierRef1} = pact_verifier:start_verifier(Name, ProviderOpts1),
+    Output1 = pact_verifier:verify(VerifierRef1),
+    ?assertEqual(0, Output1),
+    ?assertEqual(0, Output),
+    animal_service:stop(HttpdPid).

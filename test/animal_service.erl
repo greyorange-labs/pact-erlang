@@ -4,8 +4,9 @@
 -export([
     start/0,
     start/1,
-    stop/0,
-    do/1
+    stop/1,
+    do/1,
+    process_weather_data/1
 ]).
 
 -define(TABLE_NAME, animals).
@@ -16,14 +17,14 @@ start() ->
 start(Port) ->
     {ok, _} = application:ensure_all_started(inets),
     create_table(),
-    {ok, Pid} = inets:start(httpd, [{port, Port}, {server_name, "animal_service"}, {server_root, "./"}, {document_root, "./"}, {modules, [animal_service]}]),
+    {ok, Pid} = inets:start(httpd, [{bind_address, "127.0.0.1"}, {port, Port}, {server_name, "animal_service"}, {server_root, "./"}, {document_root, "./"}, {modules, [animal_service]}]),
     Info = httpd:info(Pid),
     {port, ListenPort} = lists:keyfind(port, 1, Info),
-    {ok, ListenPort}.
+    {ok, ListenPort, Pid}.
 
-stop() ->
+stop(Pid) ->
     catch ets:delete(?TABLE_NAME),
-    inets:stop().
+    inets:stop(httpd, Pid).
 
 create_table() ->
     ets:new(?TABLE_NAME, [set, public, named_table]).
@@ -61,6 +62,8 @@ process_data(#mod{request_uri = ReqUri, method = "GET"}) ->
     Path = maps:get(path, UriMap),
     SplitPath = string:tokens(Path, "/"),
     case SplitPath of
+        ["test"] ->
+            make_json_response(200, #{<<"hello">> => <<"moto">>});
         ["animals", Name] ->
             NameBinary = erlang:list_to_binary(Name),
             case find_animal_by_name(NameBinary) of
@@ -115,7 +118,9 @@ process_data(#mod{request_uri = "/pactStateChange", method = "POST", entity_body
         <<"a dog with the name Duke exists">> ->
             insert_animal(<<"Duke">>, <<"Dog">>)
     end,
-    make_json_response(200, #{ok => true}).
+    make_json_response(200, #{ok => true});
+process_data(_ModData) ->
+    make_404_response().
 
 make_json_response(Code, Body) ->
     BodyJson = erlang:binary_to_list(thoas:encode(Body)),
@@ -124,3 +129,16 @@ make_json_response(Code, Body) ->
 
 make_404_response() ->
     make_json_response(404, #{error => not_found}).
+
+process_weather_data(Payload) ->
+    #{
+        <<"weather">> := #{
+            <<"temperature">> := _Temp,
+            <<"humidity">> := _Humidity,
+            <<"wind_speed_kmh">> := _WindSpeed
+        },
+        <<"timestamp">> := _TimeStamp
+    } = Payload,
+    %% Do something with weather data like validation,
+    %% Db update
+    ok.
