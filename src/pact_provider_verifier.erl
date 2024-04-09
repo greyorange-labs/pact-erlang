@@ -40,16 +40,11 @@ do(ModData) ->
     end.
 
 process_data(#mod{request_uri = "/message_pact/verify", method = "POST", entity_body = Body}) ->
-    case thoas:decode(Body) of
-        {ok, StateReq} ->
-            Description = maps:get(<<"description">>, StateReq, <<"">>),
-            ArgsList = given_args_mapping(Description),
-            Message = erlang:apply(pact_provider_verifier, generate_message, ArgsList),
-            make_json_response(200, Message);
-        {error, Reason} ->
-            io:format("JSON Decode Error: ~p~n", [Reason]),
-            make_json_response(400, #{error => <<"Invalid JSON">>})
-    end.
+    {ok, StateReq} = thoas:decode(Body),
+    Description = maps:get(<<"description">>, StateReq, <<"">>),
+    ArgsList = given_args_mapping(Description),
+    Message = erlang:apply(pact_provider_verifier, generate_message, ArgsList),
+    make_json_response(200, Message).
 
 make_json_response(Code, Body) ->
     BodyJson = erlang:binary_to_list(thoas:encode(Body)),
@@ -77,7 +72,7 @@ generate_message(Temperature, WindSpeed, Humidity) ->
 
 given_args_mapping(Given) ->
     case Given of
-        <<"">> -> [23.5, 20, 75.0];
+        <<"weather data for animals">> -> [23.5, 20, 75.0];
         _ -> [24.5, 20, 93.0]
     end.
 
