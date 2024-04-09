@@ -19,7 +19,6 @@ start() ->
     start(8080).
 
 start(Port) ->
-    {ok, _} = application:ensure_all_started(inets),
     {ok, Pid} = inets:start(httpd, [
         {bind_address, "127.0.0.1"},
         {port, Port},
