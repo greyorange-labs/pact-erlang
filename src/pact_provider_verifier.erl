@@ -1,6 +1,6 @@
 -module(pact_provider_verifier).
 -include_lib("inets/include/httpd.hrl").
--behaviour(gen_server).
+% -behaviour(gen_server).
 
 %% Web Server API
 -export([
