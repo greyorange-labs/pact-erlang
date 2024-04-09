@@ -4,7 +4,6 @@
 
 %% Web Server API
 -export([
-    start/0,
     start/1,
     stop/1,
     do/1,
@@ -14,9 +13,6 @@
 % -export([init/1, handle_call/3, terminate/2]).
 
 -dialyzer(no_behaviours).
-
-start() ->
-    start(8080).
 
 start(Port) ->
     {ok, Pid} = inets:start(httpd, [
@@ -43,16 +39,6 @@ do(ModData) ->
             Response
     end.
 
-process_data(#mod{request_uri = ReqUri, method = "GET"}) ->
-    UriMap = uri_string:parse(ReqUri),
-    Path = maps:get(path, UriMap),
-    SplitPath = string:tokens(Path, "/"),
-    case SplitPath of
-        ["test"] ->
-            make_json_response(200, #{<<"hello">> => <<"moto">>});
-        _ ->
-            make_404_response()
-    end;
 process_data(#mod{request_uri = "/message_pact/verify", method = "POST", entity_body = Body}) ->
     case thoas:decode(Body) of
         {ok, StateReq} ->
@@ -74,8 +60,8 @@ make_json_response(Code, Body) ->
                 BodyJson}}
     ]}.
 
-make_404_response() ->
-    make_json_response(404, #{error => not_found}).
+% make_404_response() ->
+%     make_json_response(404, #{error => not_found}).
 
 generate_message(Temperature, WindSpeed, Humidity) ->
     #{
