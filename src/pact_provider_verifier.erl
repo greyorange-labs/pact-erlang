@@ -42,7 +42,7 @@ do(ModData) ->
 process_data(#mod{request_uri = "/message_pact/verify", method = "POST", entity_body = Body}) ->
     {ok, StateReq} = thoas:decode(Body),
     Description = maps:get(<<"description">>, StateReq, <<"">>),
-    ArgsList = given_args_mapping(Description),
+    ArgsList = description_args_mapping(Description),
     Message = erlang:apply(pact_provider_verifier, generate_message, ArgsList),
     make_json_response(200, Message).
 
@@ -70,9 +70,9 @@ generate_message(Temperature, WindSpeed, Humidity) ->
         )
     }.
 
-given_args_mapping(Given) ->
+description_args_mapping(Given) ->
     case Given of
-        <<"weather data for animals">> -> [23.5, 20, 75.0];
+        <<"a weather data message">> -> [23.5, 20, 75.0];
         _ -> [24.5, 20, 93.0]
     end.
 
