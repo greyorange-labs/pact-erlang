@@ -16,11 +16,11 @@ groups() ->
 
 
 init_per_suite(Config) ->
-    application:ensure_all_started(cowboy),
+    inets:start(),
     Config.
 
 end_per_suite(_Config) ->
-    application:stop(cowboy),
+    inets:stop(),
     ok.
 
 init_per_group(consumer, Config) ->
@@ -128,33 +128,15 @@ animal_consume_message_4(Config) ->
     pact:write(PactRef).
 
 verify_producer(_Config) ->
-    Port = init_handler(),
+    {ok, Port, HttpdPid} = pact_provider_verifier:start(0),
     Name = <<"weather_service">>,
     Version =  <<"default">>,
     Scheme = <<"http">>,
     Host = <<"localhost">>,
-    Path = <<"/test_weather/generate_weather">>,
+    Path = <<"/message_pact/verify">>,
     Branch = <<"develop">>,
     FilePath = <<"./pacts">>,
     Protocol = <<"message">>,
     Output = pactffi_nif:verify_file_pacts(Name, Scheme, Host, Port, Path, Version, Branch, FilePath, Protocol, self(), <<"">>),
     ?assertEqual(0, Output),
-    stop_handler().
-
-
-init_handler() ->
-    Dispatch = cowboy_router:compile([
-        {<<"localhost">>, [
-            {"/test_weather/[...]", test_weather_api_handler, []}
-        ]}
-    ]),
-    {ok, _} = cowboy:start_clear(
-        test_weather_api_handler,
-        [], 
-        #{env => #{dispatch => Dispatch}}
-    ),
-    Port = ranch:get_port(test_weather_api_handler),
-    Port.
-
-stop_handler() ->
-    ok = cowboy:stop_listener(test_weather_api_handler).
+    pact_provider_verifier:stop(HttpdPid).

@@ -14,9 +14,11 @@ groups() ->
     ].
 
 init_per_suite(Config) ->
+    inets:start(),
     Config.
 
 end_per_suite(_Config) ->
+    inets:stop(),
     ok.
 
 init_per_group(consumer, Config) ->
@@ -178,7 +180,7 @@ search_animals(Config) ->
     pact:write(PactRef).
 
 verify_producer(_Config) ->
-    {ok, Port} = animal_service:start(0),
+    {ok, Port, HttpdPid} = animal_service:start(0),
     Name = <<"animal_service">>,
     Version =  <<"default">>,
     Scheme = <<"http">>,
@@ -190,4 +192,4 @@ verify_producer(_Config) ->
     StateChangePath = list_to_binary("http://localhost:" ++ integer_to_list(Port) ++ "/pactStateChange"),
     Output = pactffi_nif:verify_file_pacts(Name, Scheme, Host, Port, Path, Version, Branch, FilePath, Protocol, self(), StateChangePath),
     ?assertEqual(0, Output),
-    animal_service:stop().
+    animal_service:stop(HttpdPid).
