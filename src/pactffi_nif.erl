@@ -34,7 +34,8 @@
     msg_with_contents/3,
     reify_message/1,
     get_reified_message/1,
-    verify_file_pacts/11
+    verify_file_pacts/11,
+    verify_broker_pacts/15
 ]).
 
 % Import the NIF functions from the C library
@@ -65,7 +66,8 @@
     msg_given_with_param/4,
     msg_with_contents/3,
     reify_message/1,
-    schedule_async_verify/11
+    schedule_async_file_verify/11,
+    schedule_async_broker_verify/16
 ]).
 -on_load(init/0).
 
@@ -178,14 +180,29 @@ msg_with_contents(_, _, _) ->
 reify_message(_) ->
     erlang:nif_error("NIF library not loaded").
 
-schedule_async_verify(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11) ->
+schedule_async_file_verify(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11) ->
+    erlang:nif_error("NIF library not loaded").
+
+schedule_async_broker_verify(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16) ->
     erlang:nif_error("NIF library not loaded").
 
 verify_file_pacts(
     Name, Scheme, Host, Port, Path, Version, Branch, FilePath, Protocol, Pid, StatePath
 ) ->
-    ok = schedule_async_verify(
+    ok = schedule_async_file_verify(
         Name, Scheme, Host, Port, Path, Version, Branch, FilePath, Protocol, Pid, StatePath
+    ),
+    receive
+        Output ->
+            Output
+    end.
+
+verify_broker_pacts(
+    Name, Scheme, Host, Port, BaseUrl, Version, Branch, BrokerUrl, BrokerUser, BrokerPassword, EnablePending, ConsumerVersionSelectors, Protocol, Pid, StatePath
+) ->
+    TotalConsumerVersionSelectors = maps:size(element(2, thoas:decode(ConsumerVersionSelectors))),
+    ok = schedule_async_broker_verify(
+        Name, Scheme, Host, Port, BaseUrl, Version, Branch, BrokerUrl, BrokerUser, BrokerPassword, EnablePending, ConsumerVersionSelectors, TotalConsumerVersionSelectors, Protocol, Pid, StatePath
     ),
     receive
         Output ->

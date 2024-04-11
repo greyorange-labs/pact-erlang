@@ -180,6 +180,9 @@ search_animals(Config) ->
     pact:write(PactRef).
 
 verify_producer(_Config) ->
+    {ok, Cwd} = file:get_cwd(),
+    PactDirectory = Cwd ++ "/pacts",
+    {0, _} = pact_consumer:publish_pacts(list_to_binary(PactDirectory)),
     {ok, Port, HttpdPid} = animal_service:start(0),
     Name = <<"animal_service">>,
     Version =  <<"default">>,
@@ -190,6 +193,29 @@ verify_producer(_Config) ->
     FilePath = <<"./pacts">>,
     Protocol = <<"http">>,
     StateChangePath = list_to_binary("http://localhost:" ++ integer_to_list(Port) ++ "/pactStateChange"),
-    Output = pactffi_nif:verify_file_pacts(Name, Scheme, Host, Port, Path, Version, Branch, FilePath, Protocol, self(), StateChangePath),
+    ProviderOpts = #{
+        name => Name,
+        version => Version,
+        scheme => Scheme,
+        host => Host,
+        port => Port,
+        base_url => Path,
+        branch => Branch,
+        pact_source_opts => #{
+            broker_url => <<"http://localhost:9292/">>,
+            broker_username => <<"pact_workshop">>,
+            broker_password => <<"pact_workshop">>,
+            enable_pending => 1,
+            consumer_version_selectors => thoas:encode(#{})
+        },
+        state_change_url => StateChangePath,
+        % message_providers => #{
+        %     <<"a weather data message">> => {message_pact_SUITE, generate_message, [23.5, 20, 75.0]}
+        % },
+        % fallback_message_provider => {message_pact_SUITE, generate_message, [24.5, 20, 93.0]},
+        protocol => Protocol
+    },
+    {ok, VerifierRef} = pact_verifier:start_verifier(Name, ProviderOpts),
+    Output = pact_verifier:verify(VerifierRef),
     ?assertEqual(0, Output),
     animal_service:stop(HttpdPid).

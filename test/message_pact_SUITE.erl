@@ -128,7 +128,6 @@ animal_consume_message_4(Config) ->
     pact:write(PactRef).
 
 verify_producer(_Config) ->
-    {ok, Port, HttpdPid} = pact_provider_verifier:start(0),
     Name = <<"weather_service">>,
     Version =  <<"default">>,
     Scheme = <<"http">>,
@@ -137,6 +136,36 @@ verify_producer(_Config) ->
     Branch = <<"develop">>,
     FilePath = <<"./pacts">>,
     Protocol = <<"message">>,
-    Output = pactffi_nif:verify_file_pacts(Name, Scheme, Host, Port, Path, Version, Branch, FilePath, Protocol, self(), <<"">>),
-    ?assertEqual(0, Output),
-    pact_provider_verifier:stop(HttpdPid).
+    ProviderOpts = #{
+        name => Name,
+        version => Version,
+        scheme => Scheme,
+        host => Host,
+        base_url => Path,
+        branch => Branch,
+        pact_source_opts => #{
+            file_path => FilePath
+        },
+        message_providers => #{
+            <<"a weather data message">> => {message_pact_SUITE, generate_message, [23.5, 20, 75.0]}
+        },
+        fallback_message_provider => {message_pact_SUITE, generate_message, [24.5, 20, 93.0]},
+        protocol => Protocol
+    },
+    {ok, VerfierRef} = pact_verifier:start_verifier(Name, ProviderOpts),
+    Output = pact_verifier:verify(VerfierRef),
+    ?assertEqual(0, Output).
+
+
+
+generate_message(Temperature, WindSpeed, Humidity) ->
+    #{
+        <<"weather">> => #{
+            <<"temperature">> => Temperature,
+            <<"humidity">> => Humidity,
+            <<"wind_speed_kmh">> => WindSpeed
+        },
+        <<"timestamp">> => list_to_binary(
+            calendar:system_time_to_rfc3339(erlang:system_time(second))
+        )
+    }.

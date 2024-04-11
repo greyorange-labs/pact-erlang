@@ -118,7 +118,10 @@ process_data(#mod{request_uri = "/pactStateChange", method = "POST", entity_body
         <<"a dog with the name Duke exists">> ->
             insert_animal(<<"Duke">>, <<"Dog">>)
     end,
-    make_json_response(200, #{ok => true}).
+    make_json_response(200, #{ok => true});
+process_data(ModData) ->
+    ct:pal(ModData#mod.absolute_uri),
+    make_404_response().
 
 make_json_response(Code, Body) ->
     BodyJson = erlang:binary_to_list(thoas:encode(Body)),

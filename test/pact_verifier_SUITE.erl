@@ -1,4 +1,4 @@
--module(pact_provider_verifier_SUITE).
+-module(pact_verifier_SUITE).
 -compile(nowarn_export_all).
 -compile(export_all).
 
@@ -16,4 +16,4 @@ end_per_suite(_Config) ->
 
 test_api_handler_failure(_Config) ->
     ModData = #mod{request_uri = "/message_pact/verify", method = "GET"},
-    ?assertEqual([{response, {500, "Internal Server Error"}}], pact_provider_verifier:do(ModData)).
+    ?assertEqual([{response, {500, "Internal Server Error"}}], pact_verifier:do(ModData)).
