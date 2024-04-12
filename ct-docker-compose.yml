@@ -5,20 +5,27 @@ services:
     container_name: pact_ct_postgres
     image: postgres
     healthcheck:
-      test: psql postgres --command "select 1" -U pact_postgres
+      # test: ["CMD", "psql", "postgres", "--command", "'select 1'", "-U", "pact_postgres"]
+      test: /usr/bin/pg_isready
+      interval: 5s
+      timeout: 10s
+      retries: 120
     ports:
-      - "5432:5432"
+      - "15432:5432"
     environment:
       POSTGRES_USER: pact_postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: pact_postgres
-      HEALTH_CHECK_PORT: 5432
+      HEALTH_CHECK_PORT: 15432
 
   pact_ct_broker_app:
     container_name: pact_ct_broker_app
     image: pactfoundation/pact-broker
     depends_on:
-      - pact_ct_postgres
+      pact_ct_postgres:
+        condition: service_healthy
+    links: 
+        - pact_ct_postgres
     ports:
       - 9292:9292
     environment:

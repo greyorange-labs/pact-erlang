@@ -4,6 +4,8 @@
     publish_pacts/1
 ]).
 
+-export([run_cmd_async/1]).
+
 -spec publish_pacts(binary()) -> {integer(), string()}.
 publish_pacts(Directory) ->
     Cmd =
@@ -22,8 +24,15 @@ publish_pacts(Directory) ->
     {RetCode, Output}.
 
 -spec run_cmd(string()) -> {integer(), string()}.
-run_cmd(Command) ->
-    Port = erlang:open_port({spawn, Command}, [stream, in, eof, hide, exit_status]),
+run_cmd(Cmd) ->
+    Res = os:cmd(Cmd ++ "\nRET_CODE=$?\necho \"\n$RET_CODE\""),
+    [[], RetCode | Rest] = lists:reverse(string:split(Res, "\n", all)),
+    Result = lists:join("\n", lists:reverse(Rest)),
+    {list_to_integer(RetCode), Result}.
+
+-spec run_cmd_async(string()) -> {integer(), string()}.
+run_cmd_async(Cmd) ->
+    Port = erlang:open_port({spawn, Cmd}, [stream, in, eof, hide, exit_status]),
     get_data_from_executable(Port, []).
 
 get_data_from_executable(Port, Sofar) ->
