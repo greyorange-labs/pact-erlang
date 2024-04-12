@@ -1,4 +1,4 @@
--module(pact_end_to_end_SUITE).
+-module(http_end_to_end_SUITE).
 -compile(nowarn_export_all).
 -compile(export_all).
 
@@ -15,10 +15,7 @@ groups() ->
 
 init_per_suite(Config) ->
     inets:start(),
-    % pact:enable_logging(trace),
-    pactffi_nif:logger_init(),
-    pactffi_nif:logger_attach_sink(<<"stdout">>, 5),
-    pactffi_nif:logger_apply(),
+    pact:enable_logging(trace),
     Config.
 
 end_per_suite(_Config) ->

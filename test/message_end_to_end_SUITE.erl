@@ -1,4 +1,4 @@
--module(message_pact_SUITE).
+-module(message_end_to_end_SUITE).
 
 -compile(nowarn_export_all).
 -compile(export_all).
@@ -17,10 +17,10 @@ groups() ->
 
 init_per_suite(Config) ->
     inets:start(),
-    % pact:enable_logging(<<"./pact_erlang.log">>, trace),
-    pactffi_nif:logger_init(),
-    pactffi_nif:logger_attach_sink(<<"stdout">>, 5),
-    pactffi_nif:logger_apply(),
+    pact:enable_logging(<<"./pact_erlang.log">>, trace),
+    % pactffi_nif:logger_init(),
+    % pactffi_nif:logger_attach_sink(<<"stdout">>, 5),
+    % pactffi_nif:logger_apply(),
     Config.
 
 end_per_suite(_Config) ->
@@ -162,9 +162,9 @@ verify_producer(_Config) ->
         branch => Branch,
         pact_source_opts => BrokerConfigs,
         message_providers => #{
-            <<"a weather data message">> => {message_pact_SUITE, generate_message, [23.5, 20, 75.0]}
+            <<"a weather data message">> => {weather_service, generate_message, [23.5, 20, 75.0]}
         },
-        fallback_message_provider => {message_pact_SUITE, generate_message, [24.5, 20, 93.0]},
+        fallback_message_provider => {weather_service, generate_message, [24.5, 20, 93.0]},
         protocol => Protocol
     },
     {ok, VerfierRef} = pact_verifier:start_verifier(Name, ProviderOpts),
