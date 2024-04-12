@@ -15,7 +15,10 @@ groups() ->
 
 init_per_suite(Config) ->
     inets:start(),
-    pact:enable_logging(trace),
+    % pact:enable_logging(trace),
+    pactffi_nif:logger_init(),
+    pactffi_nif:logger_attach_sink(<<"stdout">>, 5),
+    pactffi_nif:logger_apply(),
     Config.
 
 end_per_suite(_Config) ->
