@@ -17,6 +17,7 @@ groups() ->
 
 init_per_suite(Config) ->
     inets:start(),
+    pact:enable_logging(<<"./pact_erlang.log">>, trace),
     Config.
 
 end_per_suite(_Config) ->
@@ -128,6 +129,9 @@ animal_consume_message_4(Config) ->
     pact:write(PactRef).
 
 verify_producer(_Config) ->
+    {ok, Cwd} = file:get_cwd(),
+    PactDirectory = Cwd ++ "/pacts",
+    {0, _} = pact_broker_client:publish_pacts(list_to_binary(PactDirectory)),
     Name = <<"weather_service">>,
     Version =  <<"default">>,
     Scheme = <<"http">>,
@@ -135,7 +139,17 @@ verify_producer(_Config) ->
     Path = <<"/message_pact/verify">>,
     Branch = <<"develop">>,
     FilePath = <<"./pacts">>,
+    WrongFilePath = <<"./pactss">>,
+    BrokerUrl = <<"http://localhost:9292/">>,
+    WrongBrokerUrl = <<"http://localhost:8282/">>,
     Protocol = <<"message">>,
+    BrokerConfigs = #{
+        broker_url => BrokerUrl,
+        broker_username => <<"pact_workshop">>,
+        broker_password => <<"pact_workshop">>,
+        enable_pending => 1,
+        consumer_version_selectors => thoas:encode(#{})
+    },
     ProviderOpts = #{
         name => Name,
         version => Version,
@@ -143,9 +157,7 @@ verify_producer(_Config) ->
         host => Host,
         base_url => Path,
         branch => Branch,
-        pact_source_opts => #{
-            file_path => FilePath
-        },
+        pact_source_opts => BrokerConfigs,
         message_providers => #{
             <<"a weather data message">> => {message_pact_SUITE, generate_message, [23.5, 20, 75.0]}
         },
@@ -154,7 +166,19 @@ verify_producer(_Config) ->
     },
     {ok, VerfierRef} = pact_verifier:start_verifier(Name, ProviderOpts),
     Output = pact_verifier:verify(VerfierRef),
-    ?assertEqual(0, Output).
+    ProviderOpts1 = ProviderOpts#{pact_source_opts => #{file_path => FilePath}},
+    {ok, VerifierRef1} = pact_verifier:start_verifier(Name, ProviderOpts1),
+    Output1 = pact_verifier:verify(VerifierRef1),
+    ProviderOpts2 = ProviderOpts#{pact_source_opts => #{file_path => WrongFilePath}},
+    {ok, VerifierRef2} = pact_verifier:start_verifier(Name, ProviderOpts2),
+    Output2 = pact_verifier:verify(VerifierRef2),
+    ProviderOpts3 = ProviderOpts#{pact_source_opts => maps:update(broker_url, WrongBrokerUrl, BrokerConfigs)},
+    {ok, VerifierRef3} = pact_verifier:start_verifier(Name, ProviderOpts3),
+    Output3 = pact_verifier:verify(VerifierRef3),
+    ?assertEqual(0, Output1),
+    ?assertEqual(0, Output),
+    ?assertEqual(1, Output2),
+    ?assertEqual(1, Output3).
 
 
 

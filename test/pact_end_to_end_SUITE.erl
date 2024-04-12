@@ -15,6 +15,7 @@ groups() ->
 
 init_per_suite(Config) ->
     inets:start(),
+    pact:enable_logging(trace),
     Config.
 
 end_per_suite(_Config) ->
@@ -182,7 +183,7 @@ search_animals(Config) ->
 verify_producer(_Config) ->
     {ok, Cwd} = file:get_cwd(),
     PactDirectory = Cwd ++ "/pacts",
-    {0, _} = pact_consumer:publish_pacts(list_to_binary(PactDirectory)),
+    {0, _} = pact_broker_client:publish_pacts(list_to_binary(PactDirectory)),
     {ok, Port, HttpdPid} = animal_service:start(0),
     Name = <<"animal_service">>,
     Version =  <<"default">>,
@@ -217,5 +218,9 @@ verify_producer(_Config) ->
     },
     {ok, VerifierRef} = pact_verifier:start_verifier(Name, ProviderOpts),
     Output = pact_verifier:verify(VerifierRef),
+    ProviderOpts1 = ProviderOpts#{pact_source_opts => #{file_path => FilePath}},
+    {ok, VerifierRef1} = pact_verifier:start_verifier(Name, ProviderOpts1),
+    Output1 = pact_verifier:verify(VerifierRef1),
+    ?assertEqual(0, Output1),
     ?assertEqual(0, Output),
     animal_service:stop(HttpdPid).

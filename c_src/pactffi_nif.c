@@ -71,8 +71,8 @@ static ERL_NIF_TERM logger_attach_sink(ErlNifEnv *env, int argc, const ERL_NIF_T
         return enif_make_badarg(env);
     }
     int log_lvl = convert_erl_int_to_c_int(env, argv[1]);
-    pactffi_logger_attach_sink(logPath, log_lvl);
-    return enif_make_atom(env, "ok");
+    int result = pactffi_logger_attach_sink(logPath, log_lvl);
+    return enif_make_int(env, result);
 }
 
 static ERL_NIF_TERM logger_apply(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
@@ -790,7 +790,6 @@ static ERL_NIF_TERM verify_via_broker(ErlNifEnv *env, int argc, const ERL_NIF_TE
     }
     pactffi_verifier_set_verification_options(verifierhandle, 0, 5000),
     pactffi_verifier_set_publish_options(verifierhandle, version, NULL, NULL, -1, branch);
-    // pactffi_verifier_add_directory_source(verifierhandle, file_path);
     pactffi_verifier_broker_source_with_selectors(verifierhandle, broker_url, broker_username, broker_password, NULL, enable_pending, NULL, NULL, -1, branch, consumer_version_selectors, consumer_version_selectors_len, NULL, -1);
     setenv("PACT_DO_NOT_TRACK", "true", 1);
     int output = pactffi_verifier_execute(verifierhandle);

@@ -198,11 +198,40 @@ verify_file_pacts(
     end.
 
 verify_broker_pacts(
-    Name, Scheme, Host, Port, BaseUrl, Version, Branch, BrokerUrl, BrokerUser, BrokerPassword, EnablePending, ConsumerVersionSelectors, Protocol, Pid, StatePath
+    Name,
+    Scheme,
+    Host,
+    Port,
+    BaseUrl,
+    Version,
+    Branch,
+    BrokerUrl,
+    BrokerUser,
+    BrokerPassword,
+    EnablePending,
+    ConsumerVersionSelectors,
+    Protocol,
+    Pid,
+    StatePath
 ) ->
     TotalConsumerVersionSelectors = maps:size(element(2, thoas:decode(ConsumerVersionSelectors))),
     ok = schedule_async_broker_verify(
-        Name, Scheme, Host, Port, BaseUrl, Version, Branch, BrokerUrl, BrokerUser, BrokerPassword, EnablePending, ConsumerVersionSelectors, TotalConsumerVersionSelectors, Protocol, Pid, StatePath
+        Name,
+        Scheme,
+        Host,
+        Port,
+        BaseUrl,
+        Version,
+        Branch,
+        BrokerUrl,
+        BrokerUser,
+        BrokerPassword,
+        EnablePending,
+        ConsumerVersionSelectors,
+        TotalConsumerVersionSelectors,
+        Protocol,
+        Pid,
+        StatePath
     ),
     receive
         Output ->

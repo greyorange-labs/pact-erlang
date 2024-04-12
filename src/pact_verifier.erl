@@ -44,7 +44,9 @@ do(ModData) ->
             Response
     end.
 
-process_data(#mod{request_uri = "/message_pact/verify", method = "POST", entity_body = Body}=ModData) ->
+process_data(
+    #mod{request_uri = "/message_pact/verify", method = "POST", entity_body = Body} = ModData
+) ->
     {ok, StateReq} = thoas:decode(Body),
     Description = maps:get(<<"description">>, StateReq, <<"">>),
     Port = extract_address_port(ModData#mod.absolute_uri),
@@ -67,11 +69,10 @@ make_json_response(Code, Body) ->
 %% Web Server End
 %% ================================================================================================
 
-
 %% Gen Server
--type provider()      :: binary().
+-type provider() :: binary().
 -type provider_opts() :: map().
--type verfier_ref()   :: pid().
+-type verfier_ref() :: pid().
 
 %% erlfmt-ignore
 -record(pact_verifier, {
@@ -85,14 +86,14 @@ make_json_response(Code, Body) ->
 start_verifier(Provider, ProviderOpts) ->
     Protocol = maps:get(protocol, ProviderOpts, <<"http">>),
     {Port, HttpPid} =
-    case Protocol of
-        <<"http">> ->
-            Port1 = maps:get(port, ProviderOpts),
-            {Port1, undefined};
-        <<"message">> ->
-            {ok, Port1, HttpPid1} = pact_verifier:start(8181, Provider),
-            {Port1, HttpPid1}
-    end,
+        case Protocol of
+            <<"http">> ->
+                Port1 = maps:get(port, ProviderOpts),
+                {Port1, undefined};
+            <<"message">> ->
+                {ok, Port1, HttpPid1} = pact_verifier:start(8181, Provider),
+                {Port1, HttpPid1}
+        end,
     gen_server:start(
         {global, {?MODULE, Provider}},
         ?MODULE,
@@ -109,10 +110,11 @@ verify(VerifierRef) ->
     {ProviderOpts, ProviderPortDetails} = gen_server:call(VerifierRef, {get_provider_state_details}),
     verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails).
 
-
 -spec get_mfa_from_description(provider(), binary()) -> tuple().
 get_mfa_from_description(Provider, Description) ->
-    {Map, FallbackProviderMFA} = gen_server:call({global, {?MODULE, list_to_binary(Provider)}}, {get_message_providers_map}),
+    {Map, FallbackProviderMFA} = gen_server:call({global, {?MODULE, list_to_binary(Provider)}}, {
+        get_message_providers_map
+    }),
     ct:pal("name is ~p", [Provider]),
     case maps:get(Description, Map, undefined) of
         undefined ->
@@ -120,17 +122,15 @@ get_mfa_from_description(Provider, Description) ->
         ProviderMFA ->
             ProviderMFA
     end.
-            
 
 stop_verifier(VerfierRef) ->
-    gen_server:stop(VerfierRef).
+    ok = gen_server:stop(VerfierRef).
 
 %% message_providers map example
 %% Sample description to MFA mapping for pact verifier to know which MFA to test
 % #{
 %     <<"weather api 1">> => {M, F, ArgsList}
 % }
-
 
 %% Gen_server callbacks
 
@@ -152,8 +152,6 @@ handle_call({get_message_providers_map}, _From, State) ->
 terminate(_Reason, _State) ->
     ok.
 
-
-
 verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
     {Port, HttpPid} = ProviderPortDetails,
     #{
@@ -174,13 +172,25 @@ verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
             undefined ->
                 0;
             _ ->
-                Output = pactffi_nif:verify_file_pacts(Name, Scheme, Host, Port, BaseUrl, Version, Branch, FilePath, Protocol, self(), StateChangeUrl),
+                Output = pactffi_nif:verify_file_pacts(
+                    Name,
+                    Scheme,
+                    Host,
+                    Port,
+                    BaseUrl,
+                    Version,
+                    Branch,
+                    FilePath,
+                    Protocol,
+                    self(),
+                    StateChangeUrl
+                ),
                 case Protocol of
                     <<"message">> ->
                         pact_verifier:stop(HttpPid),
                         stop_verifier(VerifierRef);
                     _ ->
-                        ok
+                        stop_verifier(VerifierRef)
                 end,
                 Output
         end,
@@ -196,35 +206,46 @@ verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
                     consumer_version_selectors := ConsumerVersionSelectors
                 } = PactSourceOpts,
                 %% to be implemented
-                Output3 = pactffi_nif:verify_broker_pacts(Name, Scheme, Host, Port, BaseUrl, Version, Branch, PactBrokerUrl, BrokerUser, BrokerPassword, EnablePending, ConsumerVersionSelectors, Protocol, self(), StateChangeUrl),
+                Output3 = pactffi_nif:verify_broker_pacts(
+                    Name,
+                    Scheme,
+                    Host,
+                    Port,
+                    BaseUrl,
+                    Version,
+                    Branch,
+                    PactBrokerUrl,
+                    BrokerUser,
+                    BrokerPassword,
+                    EnablePending,
+                    ConsumerVersionSelectors,
+                    Protocol,
+                    self(),
+                    StateChangeUrl
+                ),
                 case Protocol of
                     <<"message">> ->
                         pact_verifier:stop(HttpPid),
                         stop_verifier(VerifierRef);
                     _ ->
-                        ok
+                        stop_verifier(VerifierRef)
                 end,
                 Output3
         end,
     combine_return_codes(Output1, Output2).
 
-
 combine_return_codes(0, 0) -> 0;
 combine_return_codes(Code1, _) when Code1 =/= 0 -> Code1;
 combine_return_codes(_, Code2) -> Code2.
 
-
 extract_address_port(Url) ->
     % Define a regex pattern to match the address and port
     Pattern = ":(\\d+)/",
-    
+
     % Use re module to match the pattern against the URL
     case re:run(Url, Pattern, [{capture, all_but_first, list}]) of
         {match, [PortStr]} ->
             % Convert the port string to an integer
             Port = list_to_integer(PortStr),
-            Port;
-        nomatch ->
-            % If no match is found, return an error
-            error
+            Port
     end.
