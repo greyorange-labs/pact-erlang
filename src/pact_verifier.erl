@@ -206,6 +206,7 @@ verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
                     consumer_version_selectors := ConsumerVersionSelectors
                 } = PactSourceOpts,
                 %% to be implemented
+                % timer:sleep(50000000),
                 Output3 = pactffi_nif:verify_broker_pacts(
                     Name,
                     Scheme,

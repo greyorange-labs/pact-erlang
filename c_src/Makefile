@@ -13,7 +13,7 @@ PACT_FFI_BASE_URL := https://github.com/pact-foundation/pact-reference/releases/
 PACT_H_URL        := $(PACT_FFI_BASE_URL)/pact.h
 
 ifeq ($(UNAME),Linux)
-    CFLAGS := -O2 -Wmissing-prototypes -Wall -shared -o
+    CFLAGS := -O2 -Wmissing-prototypes -Wall -shared -o -fPIC
     ifeq ($(ARCHITECTURE), arm64)
         PACT_FILE_NAME := libpact_ffi-linux-aarch64.a
     endif

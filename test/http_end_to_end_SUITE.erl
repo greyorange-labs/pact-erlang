@@ -16,6 +16,9 @@ groups() ->
 init_per_suite(Config) ->
     inets:start(),
     pact:enable_logging(trace),
+    % pactffi_nif:logger_init(),
+    % pactffi_nif:logger_attach_sink(<<"stdout">>, 5),
+    % pactffi_nif:logger_apply(),
     Config.
 
 end_per_suite(_Config) ->
@@ -184,7 +187,8 @@ verify_producer(_Config) ->
     {ok, Cwd} = file:get_cwd(),
     PactDirectory = Cwd ++ "/pacts",
     {0, _} = pact_broker_client:publish_pacts(list_to_binary(PactDirectory)),
-    {ok, Port, HttpdPid} = animal_service:start(0),
+    {ok, Port, HttpdPid} = animal_service:start(8080),
+    unlink(HttpdPid),
     Name = <<"animal_service">>,
     Version =  <<"default">>,
     Scheme = <<"http">>,
