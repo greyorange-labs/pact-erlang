@@ -90,7 +90,7 @@ start_verifier(Provider, ProviderOpts) ->
                 Port1 = maps:get(port, ProviderOpts),
                 {Port1, undefined};
             <<"message">> ->
-                {ok, Port1, HttpPid1} = pact_verifier:start(8181, Provider),
+                {ok, Port1, HttpPid1} = pact_verifier:start(0, Provider),
                 {Port1, HttpPid1}
         end,
     gen_server:start(
