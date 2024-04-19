@@ -1,4 +1,4 @@
-pact_erlang
+Pact Erlang
 =====
 
 ![Build Status](https://github.com/greyorange-labs/pact_erlang/actions/workflows/erlang.yml/badge.svg?event=push)
@@ -77,6 +77,77 @@ pact:write(PactRef, "/path/to/pacts").
 %% This won't cleanup the pact files, only the pact ref you created in the test setup
 pact:cleanup(PactRef).
 ```
+
+Message pacts usage
+-------------------
+
+```erlang
+
+PactRef = pact:v4(<<"animal_service">>, <<"weather_service">>),
+
+Message = pact:like(#{
+    weather => #{
+        temperature => 23.0,
+        humidity => 75.5,
+        wind_speed_kmh => 29
+    },
+    timestamp => <<"2024-03-14T10:22:13+05:30">>
+}),
+TestMessage = pact:msg_interaction(PactRef,
+#{
+    given => <<"weather data for animals">>,
+    upon_receiving => <<"a weather data message">>,
+    with_contents => Message
+}),
+#{<<"contents">> := TestMessageContents} = TestMessage,
+?assertMatch(ok, animal_service:process_weather_data(TestMessageContents)),
+pact:write(PactRef).
+
+```
+
+
+Pact verification
+-----------------
+
+```erlang
+
+Name = <<"weather_service">>,
+Version =  <<"default">>,
+Scheme = <<"http">>,
+Host = <<"localhost">>,
+Path = <<"/message_pact/verify">>,
+Branch = <<"develop">>,
+FilePath = <<"./pacts">>,
+WrongFilePath = <<"./pactss">>,
+BrokerUrl = <<"http://localhost:9292/">>,
+WrongBrokerUrl = <<"http://localhost:8282/">>,
+Protocol = <<"message">>,
+BrokerConfigs = #{
+    broker_url => BrokerUrl,
+    broker_username => <<"pact_workshop">>,
+    broker_password => <<"pact_workshop">>,
+    enable_pending => 1,
+    consumer_version_selectors => thoas:encode(#{})
+},
+ProviderOpts = #{
+    name => Name,
+    version => Version,
+    scheme => Scheme,
+    host => Host,
+    base_url => Path,
+    branch => Branch,
+    pact_source_opts => BrokerConfigs,
+    message_providers => #{
+        <<"a weather data message">> => {weather_service, generate_message, [23.5, 20, 75.0]}
+    },
+    fallback_message_provider => {weather_service, generate_message, [24.5, 20, 93.0]},
+    protocol => Protocol
+},
+{ok, VerfierRef} = pact_verifier:start_verifier(Name, ProviderOpts),
+Output = pact_verifier:verify(VerfierRef).
+
+```
+
 
 Matching request path and request/response headers, and body values
 -----

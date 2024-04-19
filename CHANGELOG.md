@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Introduced ability to add params inside given in pact interaction
 - Introduced basic pact matchers
+- Introduced support for writing consumer/provider message pact tests
+- Introduced support for pact verification
 
 
 ## [0.2.2] - 2023-11-03
