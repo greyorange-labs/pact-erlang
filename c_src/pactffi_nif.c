@@ -2,9 +2,8 @@
 #include <erl_nif.h>
 #include <pact.h>
 #include <string.h>
-// #include <stdio.h>
-// #include <stdlib.h>
-#include "erl_driver.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 static char *convert_erl_binary_to_c_string(ErlNifEnv *env, ERL_NIF_TERM binary_term)
 {
@@ -666,12 +665,12 @@ static ERL_NIF_TERM verify_via_file(ErlNifEnv *env, int argc, const ERL_NIF_TERM
     verifierhandle = pactffi_verifier_new_for_application(name, version);
     pactffi_verifier_set_provider_info(verifierhandle, name, scheme, host, port, path);
     pactffi_verifier_add_provider_transport(verifierhandle, protocol, port, path, scheme);
-    if (!enif_is_binary(env, argv[10]))
+    if (!enif_is_binary(env, argv[9]))
     {
         return enif_make_badarg(env);
     }
 
-    char *state_path = convert_erl_binary_to_c_string(env, argv[10]);
+    char *state_path = convert_erl_binary_to_c_string(env, argv[9]);
     if (state_path[0] != '\0')
     {
         pactffi_verifier_set_provider_state(verifierhandle, state_path, 0, 1);
@@ -684,147 +683,106 @@ static ERL_NIF_TERM verify_via_file(ErlNifEnv *env, int argc, const ERL_NIF_TERM
     pactffi_verifier_shutdown(verifierhandle);
 
 
-    ErlNifPid pid;
+    // ErlNifPid pid;
 
-    enif_get_local_pid(env, argv[9], &pid);
+    // enif_get_local_pid(env, argv[9], &pid);
 
-    ERL_NIF_TERM message = enif_make_int(env, output);
+    // ERL_NIF_TERM message = enif_make_int(env, output);
 
-    enif_send(env, &pid, NULL, message);
+    // enif_send(env, &pid, NULL, message);
 
-    return enif_make_atom(env, "ok");
+    return enif_make_int(env, output);
 }
-
-void *ranjan_function(void *arg) {
-
-    struct VerifierHandle *verifierhandle = (struct VerifierHandle *)arg;
-
-    int *result = (int *)malloc(sizeof(int));
-
-    int output = pactffi_verifier_execute(verifierhandle);
-
-    *result = output;
-
-    return (void *)result;
-}
-
 
 static ERL_NIF_TERM verify_via_broker(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 {
-    // if (!enif_is_binary(env, argv[0]))
-    // {
-    //     return enif_make_badarg(env);
-    // }
-    // char *name = convert_erl_binary_to_c_string(env, argv[0]);
-    // if (!enif_is_binary(env, argv[1]))
-    // {
-    //     return enif_make_badarg(env);
-    // }
-    // char *scheme = convert_erl_binary_to_c_string(env, argv[1]);
-    // if (!enif_is_binary(env, argv[2]))
-    // {
-    //     return enif_make_badarg(env);
-    // }
-    // char *host = convert_erl_binary_to_c_string(env, argv[2]);
-    // if (!enif_is_number(env, argv[3]))
-    // {
-    //     return enif_make_badarg(env);
-    // }
-    // int port = convert_erl_int_to_c_int(env, argv[3]);
-    // if (!enif_is_binary(env, argv[4]))
-    // {
-    //     return enif_make_badarg(env);
-    // }
-    // char *path = convert_erl_binary_to_c_string(env, argv[4]);
+    if (!enif_is_binary(env, argv[0]))
+    {
+        return enif_make_badarg(env);
+    }
+    char *name = convert_erl_binary_to_c_string(env, argv[0]);
+    if (!enif_is_binary(env, argv[1]))
+    {
+        return enif_make_badarg(env);
+    }
+    char *scheme = convert_erl_binary_to_c_string(env, argv[1]);
+    if (!enif_is_binary(env, argv[2]))
+    {
+        return enif_make_badarg(env);
+    }
+    char *host = convert_erl_binary_to_c_string(env, argv[2]);
+    if (!enif_is_number(env, argv[3]))
+    {
+        return enif_make_badarg(env);
+    }
+    int port = convert_erl_int_to_c_int(env, argv[3]);
+    if (!enif_is_binary(env, argv[4]))
+    {
+        return enif_make_badarg(env);
+    }
+    char *path = convert_erl_binary_to_c_string(env, argv[4]);
 
-    // if (!enif_is_binary(env, argv[5]))
-    // {
-    //     return enif_make_badarg(env);
-    // }
-    // char *version = convert_erl_binary_to_c_string(env, argv[5]);
+    if (!enif_is_binary(env, argv[5]))
+    {
+        return enif_make_badarg(env);
+    }
+    char *version = convert_erl_binary_to_c_string(env, argv[5]);
 
-    // if (!enif_is_binary(env, argv[6]))
-    // {
-    //     return enif_make_badarg(env);
-    // }
-    // char *branch = convert_erl_binary_to_c_string(env, argv[6]);
+    if (!enif_is_binary(env, argv[6]))
+    {
+        return enif_make_badarg(env);
+    }
+    char *branch = convert_erl_binary_to_c_string(env, argv[6]);
 
-    // if (!enif_is_binary(env, argv[7]))
-    // {
-    //     return enif_make_badarg(env);
-    // }
-    // char *broker_url = convert_erl_binary_to_c_string(env, argv[7]);
+    if (!enif_is_binary(env, argv[7]))
+    {
+        return enif_make_badarg(env);
+    }
+    char *broker_url = convert_erl_binary_to_c_string(env, argv[7]);
 
-    // if (!enif_is_binary(env, argv[8]))
-    // {
-    //     return enif_make_badarg(env);
-    // }
-    // char *broker_username = convert_erl_binary_to_c_string(env, argv[8]);
+    if (!enif_is_binary(env, argv[8]))
+    {
+        return enif_make_badarg(env);
+    }
+    char *broker_username = convert_erl_binary_to_c_string(env, argv[8]);
 
-    // if (!enif_is_binary(env, argv[9]))
-    // {
-    //     return enif_make_badarg(env);
-    // }
-    // char *broker_password = convert_erl_binary_to_c_string(env, argv[9]);
+    if (!enif_is_binary(env, argv[9]))
+    {
+        return enif_make_badarg(env);
+    }
+    char *broker_password = convert_erl_binary_to_c_string(env, argv[9]);
 
-    // if (!enif_is_number(env, argv[10]))
-    // {
-    //     return enif_make_badarg(env);
-    // }
-    // int enable_pending = convert_erl_int_to_c_int(env, argv[10]);
+    if (!enif_is_number(env, argv[10]))
+    {
+        return enif_make_badarg(env);
+    }
+    int enable_pending = convert_erl_int_to_c_int(env, argv[10]);
 
-    // if (!enif_is_binary(env, argv[11]))
-    // {
-    //     return enif_make_badarg(env);
-    // }
-    // char *consumer_version_selectors = convert_erl_binary_to_c_string(env, argv[11]);
+    if (!enif_is_binary(env, argv[11]))
+    {
+        return enif_make_badarg(env);
+    }
+    char *consumer_version_selectors = convert_erl_binary_to_c_string(env, argv[11]);
 
-    // if (!enif_is_number(env, argv[12]))
-    // {
-    //     return enif_make_badarg(env);
-    // }
-    // int consumer_version_selectors_len = convert_erl_int_to_c_int(env, argv[12]);
+    if (!enif_is_number(env, argv[12]))
+    {
+        return enif_make_badarg(env);
+    }
+    int consumer_version_selectors_len = convert_erl_int_to_c_int(env, argv[12]);
 
-    // if (!enif_is_binary(env, argv[13]))
-    // {
-    //     return enif_make_badarg(env);
-    // }
-    // char *protocol = convert_erl_binary_to_c_string(env, argv[13]);
-
-    // ErlNifPid pid;
-
-    // enif_get_local_pid(env, argv[14], &pid);
-
-    // if (!enif_is_binary(env, argv[15]))
-    // {
-    //     return enif_make_badarg(env);
-    // }
-    // char *state_path = convert_erl_binary_to_c_string(env, argv[15]);
-
-
-    char *name = "animal_service";
-    char *scheme = "http";
-    char *host = "localhost";
-    int port = 8080;
-    char *path = "/";
-    char *version = "default";
-    char *branch = "develop";
-    char *broker_url = "http://localhost:9292/";
-    // OSS pact broker docker image: pactfoundation/pact-broker
-    char *broker_username = "pact_workshop";
-    char *broker_password = "pact_workshop";
-    int enable_pending = 1;
-    char *consumer_version_selectors = "{}";
-    int consumer_version_selectors_len = 0;
-    char *protocol = "http";
-
-    
-    char *state_path = "http://localhost:8080/pactStateChange";
+    if (!enif_is_binary(env, argv[13]))
+    {
+        return enif_make_badarg(env);
+    }
+    char *protocol = convert_erl_binary_to_c_string(env, argv[13]);
+    char *state_path = convert_erl_binary_to_c_string(env, argv[14]);
 
     struct VerifierHandle *verifierhandle;
     verifierhandle = pactffi_verifier_new_for_application(name, version);
     pactffi_verifier_set_provider_info(verifierhandle, name, scheme, host, port, path);
     pactffi_verifier_add_provider_transport(verifierhandle, protocol, port, path, scheme);
+
+    printf("state change is %s\n", state_path);
 
     if (state_path[0] != '\0')
     {
@@ -835,42 +793,11 @@ static ERL_NIF_TERM verify_via_broker(ErlNifEnv *env, int argc, const ERL_NIF_TE
     pactffi_verifier_broker_source_with_selectors(verifierhandle, broker_url, broker_username, broker_password, NULL, enable_pending, NULL, NULL, -1, branch, consumer_version_selectors, consumer_version_selectors_len, NULL, -1);
     setenv("PACT_DO_NOT_TRACK", "true", 1);
 
-
-    ErlDrvTid tid;
-    ErlDrvThreadOpts *opts = erl_drv_thread_opts_create("example_thread");
-
-
-
-    // Create a new thread
-    if (erl_drv_thread_create("example_thread", &tid, ranjan_function, &verifierhandle, opts) != 0) {
-        // fprintf(stderr, "Failed to create thread\n");
-        return 1;
-    }
-
-
-    int *result;
-    if (erl_drv_thread_join(tid, (void **)&result) != 0) {
-        // fprintf(stderr, "Failed to join thread\n");
-        return 1;
-    }
-
-    printf("Result returned by the thread: %d\n", *result);
-
-    // // Detach the thread (optional)
-    // if (erl_drv_thread_detach(tid) != 0) {
-    //     fprintf(stderr, "Failed to detach thread\n");
-    //     return 1;
-    // }
-
+    int verification_output = pactffi_verifier_execute(verifierhandle);
 
     pactffi_verifier_shutdown(verifierhandle);
 
-
-    // ERL_NIF_TERM message = enif_make_int(env, output);
-
-    // enif_send(env, &pid, NULL, message);
-
-    return enif_make_int(env, *result);
+    return enif_make_int(env, verification_output);
 }
 
 
@@ -913,9 +840,10 @@ static ErlNifFunc nif_funcs[] =
         {"msg_given_with_param", 4, msg_given_with_param},
         {"msg_with_contents", 3, msg_with_contents},
         {"reify_message", 1, reify_message},
-        {"schedule_async_file_verify", 11, schedule_async_file_verify},
-        {"schedule_async_broker_verify", 16, schedule_async_broker_verify},
-        {"verify_via_broker", 16, verify_via_broker}
+        {"schedule_async_file_verify", 10, schedule_async_file_verify},
+        {"schedule_async_broker_verify", 15, schedule_async_broker_verify},
+        {"verify_via_broker", 15, verify_via_broker},
+        {"verify_via_file", 10, verify_via_file}
     };
 
 ERL_NIF_INIT(pactffi_nif, nif_funcs, NULL, NULL, NULL, NULL)

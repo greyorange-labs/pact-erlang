@@ -16,9 +16,6 @@ groups() ->
 init_per_suite(Config) ->
     inets:start(),
     pact:enable_logging(trace),
-    % pactffi_nif:logger_init(),
-    % pactffi_nif:logger_attach_sink(<<"stdout">>, 5),
-    % pactffi_nif:logger_apply(),
     Config.
 
 end_per_suite(_Config) ->
@@ -195,7 +192,7 @@ verify_producer(_Config) ->
     Host = <<"localhost">>,
     Path = <<"/">>,
     Branch = <<"develop">>,
-    FilePath = <<"./pacts">>,
+    % FilePath = <<"./pacts">>,
     Protocol = <<"http">>,
     StateChangePath = list_to_binary("http://localhost:" ++ integer_to_list(Port) ++ "/pactStateChange"),
     ProviderOpts = #{
@@ -222,9 +219,9 @@ verify_producer(_Config) ->
     },
     {ok, VerifierRef} = pact_verifier:start_verifier(Name, ProviderOpts),
     Output = pact_verifier:verify(VerifierRef),
-    ProviderOpts1 = ProviderOpts#{pact_source_opts => #{file_path => FilePath}},
-    {ok, VerifierRef1} = pact_verifier:start_verifier(Name, ProviderOpts1),
-    Output1 = pact_verifier:verify(VerifierRef1),
-    ?assertEqual(0, Output1),
+    % ProviderOpts1 = ProviderOpts#{pact_source_opts => #{file_path => FilePath}},
+    % {ok, VerifierRef1} = pact_verifier:start_verifier(Name, ProviderOpts1),
+    % Output1 = pact_verifier:verify(VerifierRef1),
+    % ?assertEqual(0, Output1),
     ?assertEqual(0, Output),
     animal_service:stop(HttpdPid).

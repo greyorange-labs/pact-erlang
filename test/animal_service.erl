@@ -49,6 +49,8 @@ find_animals_by_type(Type) ->
     lists:map(fun({N, T}) -> #{name => N, type => T} end, AnimalList).
 
 do(ModData) ->
+    Now = erlang:localtime(),
+    ct:pal("~p:::::::::::::Getting request 1 ~p ", [Now, ModData]),
     case catch process_data(ModData) of
         {'EXIT', Reason} ->
             io:format("Error: ~p~n", [Reason]),
@@ -103,6 +105,7 @@ process_data(#mod{request_uri = "/animals", method = "POST", entity_body = Body}
     end;
 process_data(#mod{request_uri = "/pactStateChange", method = "POST", entity_body = Body}) ->
     {ok, StateRequest} = thoas:decode(Body),
+    ct:pal("::::::::::::Getting request 2 ~p ", [Body]),
     RequiredState = maps:get(<<"state">>, StateRequest, <<"">>),
     case RequiredState of
         <<"">> -> reset_data();
@@ -118,6 +121,7 @@ process_data(#mod{request_uri = "/pactStateChange", method = "POST", entity_body
         <<"a dog with the name Duke exists">> ->
             insert_animal(<<"Duke">>, <<"Dog">>)
     end,
+    ct:pal("::::::::::::Getting request 3 ~p ", [StateRequest]),
     make_json_response(200, #{ok => true});
 process_data(ModData) ->
     ct:pal(ModData#mod.absolute_uri),

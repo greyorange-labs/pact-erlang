@@ -167,24 +167,45 @@ verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
     Scheme = maps:get(scheme, ProviderOpts, <<"http">>),
     FilePath = maps:get(file_path, PactSourceOpts, undefined),
     PactBrokerUrl = maps:get(broker_url, PactSourceOpts, undefined),
+    EscriptPath = code:priv_dir(pact_erlang) ++ "/pact_escript.escript",
     Output1 =
         case FilePath of
             undefined ->
                 0;
             _ ->
-                Output = pactffi_nif:verify_file_pacts(
-                    Name,
-                    Scheme,
-                    Host,
-                    Port,
-                    BaseUrl,
-                    Version,
-                    Branch,
-                    FilePath,
-                    Protocol,
-                    self(),
-                    StateChangeUrl
+                ct:pal("node name is ~p", [erlang:node()]),
+                Args =
+                    [
+                        Name,
+                        Scheme,
+                        Host,
+                        Port,
+                        BaseUrl,
+                        Version,
+                        Branch,
+                        FilePath,
+                        Protocol,
+                        StateChangeUrl
+                    ],
+                ArgsString =
+                    lists:foldl(
+                        fun(Arg, Acc) ->
+                            A =
+                                case Arg of
+                                    X when is_integer(X) ->
+                                        integer_to_list(X);
+                                    _ ->
+                                        binary_to_list(Arg)
+                                end,
+                            Acc ++ " " ++ A
+                        end,
+                        "",
+                        Args
+                    ),
+                {Output, OutputLog} = pact_broker_client:run_cmd_async(
+                    EscriptPath ++ " pactffi_nif verify_file_pacts " ++ ArgsString
                 ),
+                ct:pal("OutputLog is ~p", [OutputLog]),
                 case Protocol of
                     <<"message">> ->
                         pact_verifier:stop(HttpPid),
@@ -205,9 +226,8 @@ verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
                     enable_pending := EnablePending,
                     consumer_version_selectors := ConsumerVersionSelectors
                 } = PactSourceOpts,
-                %% to be implemented
-                % timer:sleep(50000000),
-                Output3 = pactffi_nif:verify_broker_pacts(
+                ct:pal("node name is ~p", [erlang:node()]),
+                Args1 = [
                     Name,
                     Scheme,
                     Host,
@@ -221,9 +241,27 @@ verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
                     EnablePending,
                     ConsumerVersionSelectors,
                     Protocol,
-                    self(),
                     StateChangeUrl
+                ],
+                ArgsString1 =
+                    lists:foldl(
+                        fun(Arg, Acc) ->
+                            A =
+                                case Arg of
+                                    Y when is_integer(Y) ->
+                                        integer_to_list(Y);
+                                    _ ->
+                                        binary_to_list(Arg)
+                                end,
+                            Acc ++ " " ++ A
+                        end,
+                        "",
+                        Args1
+                    ),
+                {Output3, OutputLog3} = pact_broker_client:run_cmd_async(
+                    EscriptPath ++ " pactffi_nif verify_broker_pacts " ++ ArgsString1
                 ),
+                ct:pal("OutputLog is ~p", [OutputLog3]),
                 case Protocol of
                     <<"message">> ->
                         pact_verifier:stop(HttpPid),

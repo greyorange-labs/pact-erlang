@@ -61,6 +61,7 @@ $(LIBRARY_PATH): $(PACT_VERSION_FILE)
 	@echo "Fetching libpact_ffi..."
 	@curl -sS -L $(PACT_FFI_URL) -o $(LIBRARY_PATH).gz
 	@gzip -d $(LIBRARY_PATH).gz
+	@cp $(BASEDIR)/src/pact_escript.escript $(LIBRARY_BASE_PATH)
 	@echo "Done"
 
 $(PACT_VERSION_FILE):

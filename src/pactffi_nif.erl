@@ -34,10 +34,12 @@
     msg_with_contents/3,
     reify_message/1,
     get_reified_message/1,
-    verify_file_pacts/11,
-    verify_broker_pacts/15,
-    schedule_async_broker_verify/16,
-    verify_via_broker/16
+    verify_file_pacts/10,
+    verify_broker_pacts/14,
+    schedule_async_broker_verify/15,
+    schedule_async_file_verify/10,
+    verify_via_broker/15,
+    verify_via_file/10
 ]).
 
 % Import the NIF functions from the C library
@@ -68,9 +70,10 @@
     msg_given_with_param/4,
     msg_with_contents/3,
     reify_message/1,
-    schedule_async_file_verify/11,
-    schedule_async_broker_verify/16,
-    verify_via_broker/16
+    schedule_async_file_verify/10,
+    schedule_async_broker_verify/15,
+    verify_via_broker/15,
+    verify_via_file/10
 ]).
 -on_load(init/0).
 
@@ -101,7 +104,7 @@ get_reified_message(InteractionHandle) ->
 % Load the NIF library
 init() ->
     % Adjust the path to the built NIF wrapper library
-    Path = "/home/ranjan/work/pact_erlang/priv" ++ "/libpact_ffi",
+    Path = code:priv_dir(pact_erlang) ++ "/libpact_ffi",
     ok = erlang:load_nif(Path, 0).
 
 % Define the Erlang functions that calls the NIF functions
@@ -183,25 +186,31 @@ msg_with_contents(_, _, _) ->
 reify_message(_) ->
     erlang:nif_error("NIF library not loaded").
 
-schedule_async_file_verify(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11) ->
+schedule_async_file_verify(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) ->
     erlang:nif_error("NIF library not loaded").
 
-schedule_async_broker_verify(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16) ->
+schedule_async_broker_verify(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15) ->
     erlang:nif_error("NIF library not loaded").
 
-verify_via_broker(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16) ->
+verify_via_file(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) ->
+    erlang:nif_error("NIF library not loaded").
+
+verify_via_broker(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15) ->
     erlang:nif_error("NIF library not loaded").
 
 verify_file_pacts(
-    Name, Scheme, Host, Port, Path, Version, Branch, FilePath, Protocol, Pid, StatePath
+    Name, Scheme, Host, Port, Path, Version, Branch, FilePath, Protocol, StatePath
 ) ->
-    ok = schedule_async_file_verify(
-        Name, Scheme, Host, Port, Path, Version, Branch, FilePath, Protocol, Pid, StatePath
-    ),
-    receive
-        Output ->
-            Output
-    end.
+    verify_via_file(
+        Name, Scheme, Host, Port, Path, Version, Branch, FilePath, Protocol, StatePath
+    ).
+% receive
+%     Output ->
+%         Output
+% end.
+% verify_via_file(
+%     Name, Scheme, Host, Port, Path, Version, Branch, FilePath, Protocol, Pid, StatePath
+% ).
 
 verify_broker_pacts(
     Name,
@@ -217,7 +226,6 @@ verify_broker_pacts(
     EnablePending,
     ConsumerVersionSelectors,
     Protocol,
-    Pid,
     StatePath
 ) ->
     TotalConsumerVersionSelectors = 0,
@@ -236,10 +244,9 @@ verify_broker_pacts(
         ConsumerVersionSelectors,
         TotalConsumerVersionSelectors,
         Protocol,
-        Pid,
         StatePath
     ).
-    % receive
+% receive
     %     Output ->
     %         Output
     % end.

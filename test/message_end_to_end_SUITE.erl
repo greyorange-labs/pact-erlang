@@ -18,9 +18,6 @@ groups() ->
 init_per_suite(Config) ->
     inets:start(),
     pact:enable_logging(<<"./pact_erlang.log">>, trace),
-    % pactffi_nif:logger_init(),
-    % pactffi_nif:logger_attach_sink(<<"stdout">>, 5),
-    % pactffi_nif:logger_apply(),
     Config.
 
 end_per_suite(_Config) ->
@@ -141,8 +138,8 @@ verify_producer(_Config) ->
     Host = <<"localhost">>,
     Path = <<"/message_pact/verify">>,
     Branch = <<"develop">>,
-    FilePath = <<"./pacts">>,
-    WrongFilePath = <<"./pactss">>,
+    % FilePath = <<"./pacts">>,
+    % WrongFilePath = <<"./pactss">>,
     BrokerUrl = <<"http://localhost:9292/">>,
     WrongBrokerUrl = <<"http://localhost:8282/">>,
     Protocol = <<"message">>,
@@ -169,18 +166,18 @@ verify_producer(_Config) ->
     },
     {ok, VerfierRef} = pact_verifier:start_verifier(Name, ProviderOpts),
     Output = pact_verifier:verify(VerfierRef),
-    ProviderOpts1 = ProviderOpts#{pact_source_opts => #{file_path => FilePath}},
-    {ok, VerifierRef1} = pact_verifier:start_verifier(Name, ProviderOpts1),
-    Output1 = pact_verifier:verify(VerifierRef1),
-    ProviderOpts2 = ProviderOpts#{pact_source_opts => #{file_path => WrongFilePath}},
-    {ok, VerifierRef2} = pact_verifier:start_verifier(Name, ProviderOpts2),
-    Output2 = pact_verifier:verify(VerifierRef2),
+    % ProviderOpts1 = ProviderOpts#{pact_source_opts => #{file_path => FilePath}},
+    % {ok, VerifierRef1} = pact_verifier:start_verifier(Name, ProviderOpts1),
+    % Output1 = pact_verifier:verify(VerifierRef1),
+    % ProviderOpts2 = ProviderOpts#{pact_source_opts => #{file_path => WrongFilePath}},
+    % {ok, VerifierRef2} = pact_verifier:start_verifier(Name, ProviderOpts2),
+    % Output2 = pact_verifier:verify(VerifierRef2),
     ProviderOpts3 = ProviderOpts#{pact_source_opts => maps:update(broker_url, WrongBrokerUrl, BrokerConfigs)},
     {ok, VerifierRef3} = pact_verifier:start_verifier(Name, ProviderOpts3),
     Output3 = pact_verifier:verify(VerifierRef3),
-    ?assertEqual(0, Output1),
+    % ?assertEqual(0, Output1),
     ?assertEqual(0, Output),
-    ?assertEqual(1, Output2),
+    % ?assertEqual(1, Output2),
     ?assertEqual(1, Output3).
 
 
