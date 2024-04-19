@@ -5,6 +5,39 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static const char *const * binary_to_char_array(ErlNifEnv* env, const ERL_NIF_TERM binary_term) {
+    ErlNifBinary binary;
+    
+    // Extract the binary data from the Erlang term
+    if (!enif_inspect_binary(env, binary_term, &binary))
+        return NULL;
+
+    // Allocate memory for an array of const char *
+    const char **char_array = enif_alloc(sizeof(const char *) * (binary.size + 1)); // +1 for NULL terminator
+    if (!char_array)
+        return NULL;
+
+    // Convert each byte in the binary data to a const char *
+    for (int i = 0; i < binary.size; i++) {
+        char *str = enif_alloc(2); // Allocate memory for a single character plus null terminator
+        if (!str) {
+            // Free already allocated memory
+            for (int j = 0; j < i; j++) {
+                enif_free((void *)char_array[j]);
+            }
+            enif_free(char_array);
+            return NULL;
+        }
+        snprintf(str, 2, "%c", binary.data[i]); // Convert byte to a single-character string
+        char_array[i] = str;
+    }
+
+    // Null-terminate the array
+    char_array[binary.size] = NULL;
+
+    return char_array;
+}
+
 static char *convert_erl_binary_to_c_string(ErlNifEnv *env, ERL_NIF_TERM binary_term)
 {
     ErlNifBinary binary;
@@ -762,7 +795,7 @@ static ERL_NIF_TERM verify_via_broker(ErlNifEnv *env, int argc, const ERL_NIF_TE
     {
         return enif_make_badarg(env);
     }
-    char *consumer_version_selectors = convert_erl_binary_to_c_string(env, argv[11]);
+    const char *const *consumer_version_selectors = binary_to_char_array(env, argv[11]);
 
     if (!enif_is_number(env, argv[12]))
     {
