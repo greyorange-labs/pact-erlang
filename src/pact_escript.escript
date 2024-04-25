@@ -2,7 +2,8 @@
 
 
 main([Module, Function | Args]) ->
-    true = code:add_pathz("../../lib/pact_erlang/ebin"),
+    code:add_pathz("../../lib/pact_erlang/ebin"),
+    code:add_pathz("../../../lib/pact_erlang/ebin"),
     ModuleAtom = list_to_atom(Module),
     FunctionAtom = list_to_atom(Function),
     ArgsList =
