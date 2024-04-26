@@ -202,13 +202,6 @@ verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
                 {Output, _OutputLog} = pact_utils:run_executable_async(
                     EscriptPath ++ " pactffi_nif verify_file_pacts " ++ ArgsString
                 ),
-                case Protocol of
-                    <<"message">> ->
-                        pact_verifier:stop(HttpPid),
-                        stop_verifier(VerifierRef);
-                    _ ->
-                        stop_verifier(VerifierRef)
-                end,
                 Output
         end,
     Output2 =
@@ -256,15 +249,15 @@ verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
                 {Output3, _OutputLog3} = pact_utils:run_executable_async(
                     EscriptPath ++ " pactffi_nif verify_broker_pacts " ++ ArgsString1
                 ),
-                case Protocol of
-                    <<"message">> ->
-                        pact_verifier:stop(HttpPid),
-                        stop_verifier(VerifierRef);
-                    _ ->
-                        stop_verifier(VerifierRef)
-                end,
                 Output3
         end,
+    case Protocol of
+        <<"message">> ->
+            pact_verifier:stop(HttpPid),
+            stop_verifier(VerifierRef);
+        _ ->
+            stop_verifier(VerifierRef)
+    end,
     combine_return_codes(Output1, Output2).
 
 combine_return_codes(0, 0) -> 0;

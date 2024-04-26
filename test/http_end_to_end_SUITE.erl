@@ -195,6 +195,13 @@ verify_producer(_Config) ->
     FilePath = <<"./pacts">>,
     Protocol = <<"http">>,
     StateChangePath = list_to_binary("http://localhost:" ++ integer_to_list(Port) ++ "/pactStateChange"),
+    BrokerOpts = #{
+            broker_url => <<"http://localhost:9292/">>,
+            broker_username => <<"pact_workshop">>,
+            broker_password => <<"pact_workshop">>,
+            enable_pending => 1,
+            consumer_version_selectors => thoas:encode(#{})
+        },
     ProviderOpts = #{
         name => Name,
         version => Version,
@@ -203,13 +210,7 @@ verify_producer(_Config) ->
         port => Port,
         base_url => Path,
         branch => Branch,
-        pact_source_opts => #{
-            broker_url => <<"http://localhost:9292/">>,
-            broker_username => <<"pact_workshop">>,
-            broker_password => <<"pact_workshop">>,
-            enable_pending => 1,
-            consumer_version_selectors => thoas:encode(#{})
-        },
+        pact_source_opts => BrokerOpts,
         state_change_url => StateChangePath,
         % message_providers => #{
         %     <<"a weather data message">> => {message_pact_SUITE, generate_message, [23.5, 20, 75.0]}
@@ -222,6 +223,10 @@ verify_producer(_Config) ->
     ProviderOpts1 = ProviderOpts#{pact_source_opts => #{file_path => FilePath}},
     {ok, VerifierRef1} = pact_verifier:start_verifier(Name, ProviderOpts1),
     Output1 = pact_verifier:verify(VerifierRef1),
+    ProviderOpts2 = ProviderOpts#{pact_source_opts => maps:put(file_path, FilePath, BrokerOpts)},
+    {ok, VerifierRef2} = pact_verifier:start_verifier(Name, ProviderOpts2),
+    Output2 = pact_verifier:verify(VerifierRef2),
     ?assertEqual(0, Output1),
     ?assertEqual(0, Output),
+    ?assertEqual(0, Output2),
     animal_service:stop(HttpdPid).
