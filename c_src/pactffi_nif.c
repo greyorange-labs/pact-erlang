@@ -696,6 +696,7 @@ static ERL_NIF_TERM verify_via_file(ErlNifEnv *env, int argc, const ERL_NIF_TERM
 
     struct VerifierHandle *verifierhandle;
     verifierhandle = pactffi_verifier_new_for_application(name, version);
+    pactffi_verifier_set_no_pacts_is_error(verifierhandle, 0);
     pactffi_verifier_set_provider_info(verifierhandle, name, scheme, host, port, path);
     pactffi_verifier_add_provider_transport(verifierhandle, protocol, port, path, scheme);
     if (!enif_is_binary(env, argv[9]))
@@ -812,6 +813,7 @@ static ERL_NIF_TERM verify_via_broker(ErlNifEnv *env, int argc, const ERL_NIF_TE
 
     struct VerifierHandle *verifierhandle;
     verifierhandle = pactffi_verifier_new_for_application(name, version);
+    pactffi_verifier_set_no_pacts_is_error(verifierhandle, 0);
     pactffi_verifier_set_provider_info(verifierhandle, name, scheme, host, port, path);
     pactffi_verifier_add_provider_transport(verifierhandle, protocol, port, path, scheme);
 
