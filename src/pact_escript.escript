@@ -53,7 +53,7 @@ main([Module, Function | Args]) ->
                     AList1
             end
     end,
-    pact:enable_logging(trace),
+    pact:enable_logging(warn),
     Result = erlang:apply(ModuleAtom, FunctionAtom, ArgsList),
     case Result of
         ReturnValue when is_integer(ReturnValue) ->
