@@ -8,7 +8,7 @@ PACT_INCLUDE_PATH := $(CURDIR)/include
 UNAME := $(shell uname -s)
 ARCHITECTURE := $(shell uname -m)
 
-PACT_FFI_VERSION  := 0.4.7
+PACT_FFI_VERSION  := 0.4.17
 PACT_FFI_BASE_URL := https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v$(PACT_FFI_VERSION)
 PACT_H_URL        := $(PACT_FFI_BASE_URL)/pact.h
 
