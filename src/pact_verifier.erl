@@ -12,7 +12,8 @@
 %% Pact Verifier APIs
 -export([
     start_verifier/2,
-    verify/1
+    verify/1,
+    verify_v2/1
 ]).
 
 -export([init/1, handle_call/3, terminate/2]).
@@ -104,10 +105,15 @@ start_verifier(Provider, ProviderOpts) ->
         []
     ).
 
--spec verify(verfier_ref()) -> {integer(), string(), string()}.
+-spec verify(verfier_ref()) -> integer().
 verify(VerifierRef) ->
     {ProviderOpts, ProviderPortDetails} = gen_server:call(VerifierRef, {get_provider_state_details}),
     verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails).
+
+-spec verify(verfier_ref()) -> {integer(), string(), string()}.
+verify_v2(VerifierRef) ->
+    {ProviderOpts, ProviderPortDetails} = gen_server:call(VerifierRef, {get_provider_state_details}),
+    verify_pacts_v2(VerifierRef, ProviderOpts, ProviderPortDetails).
 
 -spec get_mfa_from_description(string(), binary()) -> tuple().
 get_mfa_from_description(Provider, Description) ->
