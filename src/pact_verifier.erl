@@ -172,7 +172,7 @@ verify_pacts_internal(VerifierRef, ProviderOpts, ProviderPortDetails) ->
     FilePath = maps:get(file_path, PactSourceOpts, undefined),
     PactBrokerUrl = maps:get(broker_url, PactSourceOpts, undefined),
     EscriptPath = code:priv_dir(pact_erlang) ++ "/pact_escript.escript",
-    {Output1, OutputLog1}  =
+    {Output1, OutputLog1} =
         case FilePath of
             undefined ->
                 {0, ""};
@@ -210,7 +210,7 @@ verify_pacts_internal(VerifierRef, ProviderOpts, ProviderPortDetails) ->
                 ),
                 {Output, OutputLog}
         end,
-    {Output2, OutputLog2}  =
+    {Output2, OutputLog2} =
         case PactBrokerUrl of
             undefined ->
                 {0, ""};
@@ -267,7 +267,9 @@ verify_pacts_internal(VerifierRef, ProviderOpts, ProviderPortDetails) ->
     {combine_return_codes(Output1, Output2), OutputLog1, OutputLog2}.
 
 verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
-    {OutputCode, _OutputLog1, _OutputLog2} = verify_pacts_internal(VerifierRef, ProviderOpts, ProviderPortDetails),
+    {OutputCode, _OutputLog1, _OutputLog2} = verify_pacts_internal(
+        VerifierRef, ProviderOpts, ProviderPortDetails
+    ),
     OutputCode.
 
 verify_pacts_v2(VerifierRef, ProviderOpts, ProviderPortDetails) ->
