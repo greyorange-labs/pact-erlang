@@ -150,7 +150,7 @@ handle_call({get_message_providers_map}, _From, State) ->
 terminate(_Reason, _State) ->
     ok.
 
-verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
+verify_pacts_internal(VerifierRef, ProviderOpts, ProviderPortDetails) ->
     {Port, HttpPid} = ProviderPortDetails,
     #{
         name := Name,
@@ -259,6 +259,13 @@ verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
             stop_verifier(VerifierRef)
     end,
     {combine_return_codes(Output1, Output2), OutputLog1, OutputLog2}.
+
+verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
+    {OutputCode, _OutputLog1, _OutputLog2} = verify_pacts_internal(VerifierRef, ProviderOpts, ProviderPortDetails),
+    OutputCode.
+
+verify_pacts_v2(VerifierRef, ProviderOpts, ProviderPortDetails) ->
+    verify_pacts_internal(VerifierRef, ProviderOpts, ProviderPortDetails).
 
 combine_return_codes(0, 0) -> 0;
 combine_return_codes(Code1, _) when Code1 =/= 0 -> Code1;
