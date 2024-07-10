@@ -104,7 +104,7 @@ start_verifier(Provider, ProviderOpts) ->
         []
     ).
 
--spec verify(verfier_ref()) -> integer().
+-spec verify(verfier_ref()) -> {integer(), string(), string()}.
 verify(VerifierRef) ->
     {ProviderOpts, ProviderPortDetails} = gen_server:call(VerifierRef, {get_provider_state_details}),
     verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails).
@@ -166,7 +166,7 @@ verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
     FilePath = maps:get(file_path, PactSourceOpts, undefined),
     PactBrokerUrl = maps:get(broker_url, PactSourceOpts, undefined),
     EscriptPath = code:priv_dir(pact_erlang) ++ "/pact_escript.escript",
-    Output1 =
+    {Output1, OutputLog1}  =
         case FilePath of
             undefined ->
                 0;
@@ -199,12 +199,12 @@ verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
                         "",
                         Args
                     ),
-                {Output, _OutputLog} = pact_utils:run_executable_async(
+                {Output, OutputLog} = pact_utils:run_executable_async(
                     EscriptPath ++ " pactffi_nif verify_file_pacts " ++ ArgsString
                 ),
-                Output
+                {Output, OutputLog}
         end,
-    Output2 =
+    {Output2, OutputLog2}  =
         case PactBrokerUrl of
             undefined ->
                 0;
@@ -246,10 +246,10 @@ verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
                         "",
                         Args1
                     ),
-                {Output3, _OutputLog3} = pact_utils:run_executable_async(
+                {Output3, OutputLog3} = pact_utils:run_executable_async(
                     EscriptPath ++ " pactffi_nif verify_broker_pacts " ++ ArgsString1
                 ),
-                Output3
+                {Output3, OutputLog3}
         end,
     case Protocol of
         <<"message">> ->
@@ -258,7 +258,7 @@ verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails) ->
         _ ->
             stop_verifier(VerifierRef)
     end,
-    combine_return_codes(Output1, Output2).
+    {combine_return_codes(Output1, Output2), OutputLog1, OutputLog2}.
 
 combine_return_codes(0, 0) -> 0;
 combine_return_codes(Code1, _) when Code1 =/= 0 -> Code1;

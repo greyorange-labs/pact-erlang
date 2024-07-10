@@ -144,7 +144,7 @@ ProviderOpts = #{
     protocol => Protocol
 },
 {ok, VerfierRef} = pact_verifier:start_verifier(Name, ProviderOpts),
-Output = pact_verifier:verify(VerfierRef).
+{Output, OutputLog1, OutputLog2} = pact_verifier:verify(VerfierRef).
 
 ```
 

@@ -41,10 +41,10 @@ get_animal_success(Config) ->
     {ok, Port} = pact:interaction(PactRef,
     #{
         given => #{
-            state => <<"an alligator with the name Mary exists">>,
+            state => <<"AN alligator with the name Mary exists">>,
             params => thoas:encode(AnimalObject)
         },
-        upon_receiving => <<"a request to GET an animal: Mary">>,
+        upon_receiving => <<"AN request to GET an animal: Mary">>,
         with_request => #{
             method => <<"GET">>,
             path => <<"/animals/Mary">>
@@ -219,13 +219,13 @@ verify_producer(_Config) ->
         protocol => Protocol
     },
     {ok, VerifierRef} = pact_verifier:start_verifier(Name, ProviderOpts),
-    Output = pact_verifier:verify(VerifierRef),
+    {Output, _, _} = pact_verifier:verify(VerifierRef),
     ProviderOpts1 = ProviderOpts#{pact_source_opts => #{file_path => FilePath}},
     {ok, VerifierRef1} = pact_verifier:start_verifier(Name, ProviderOpts1),
-    Output1 = pact_verifier:verify(VerifierRef1),
+    {Output1, _, _} = pact_verifier:verify(VerifierRef1),
     ProviderOpts2 = ProviderOpts#{pact_source_opts => maps:put(file_path, FilePath, BrokerOpts)},
     {ok, VerifierRef2} = pact_verifier:start_verifier(Name, ProviderOpts2),
-    Output2 = pact_verifier:verify(VerifierRef2),
+    {Output2, _, _} = pact_verifier:verify(VerifierRef2),
     ?assertEqual(0, Output1),
     ?assertEqual(0, Output),
     ?assertEqual(0, Output2),
