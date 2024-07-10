@@ -41,10 +41,10 @@ get_animal_success(Config) ->
     {ok, Port} = pact:interaction(PactRef,
     #{
         given => #{
-            state => <<"AN alligator with the name Mary exists">>,
+            state => <<"an alligator with the name Mary exists">>,
             params => thoas:encode(AnimalObject)
         },
-        upon_receiving => <<"AN request to GET an animal: Mary">>,
+        upon_receiving => <<"a request to GET an animal: Mary">>,
         with_request => #{
             method => <<"GET">>,
             path => <<"/animals/Mary">>
