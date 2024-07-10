@@ -175,7 +175,7 @@ verify_pacts_internal(VerifierRef, ProviderOpts, ProviderPortDetails) ->
     {Output1, OutputLog1}  =
         case FilePath of
             undefined ->
-                0;
+                {0, ""};
             _ ->
                 Args =
                     [
@@ -213,7 +213,7 @@ verify_pacts_internal(VerifierRef, ProviderOpts, ProviderPortDetails) ->
     {Output2, OutputLog2}  =
         case PactBrokerUrl of
             undefined ->
-                0;
+                {0, ""};
             _ ->
                 #{
                     broker_username := BrokerUser,
