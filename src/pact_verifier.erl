@@ -110,7 +110,7 @@ verify(VerifierRef) ->
     {ProviderOpts, ProviderPortDetails} = gen_server:call(VerifierRef, {get_provider_state_details}),
     verify_pacts(VerifierRef, ProviderOpts, ProviderPortDetails).
 
--spec verify(verfier_ref()) -> {integer(), string(), string()}.
+-spec verify_v2(verfier_ref()) -> {integer(), string(), string()}.
 verify_v2(VerifierRef) ->
     {ProviderOpts, ProviderPortDetails} = gen_server:call(VerifierRef, {get_provider_state_details}),
     verify_pacts_v2(VerifierRef, ProviderOpts, ProviderPortDetails).
