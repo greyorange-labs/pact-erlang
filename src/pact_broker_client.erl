@@ -1,7 +1,8 @@
 -module(pact_broker_client).
 
 -export([
-    publish_pacts/1
+    publish_pacts/1,
+    run_cmd/1
 ]).
 
 -spec publish_pacts(binary()) -> {integer(), string()}.

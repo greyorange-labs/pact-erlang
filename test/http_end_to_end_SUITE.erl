@@ -219,7 +219,9 @@ verify_producer(_Config) ->
         protocol => Protocol
     },
     {ok, VerifierRef} = pact_verifier:start_verifier(Name, ProviderOpts),
-    Output = pact_verifier:verify(VerifierRef),
+    {Output, OutputLog1, OutputLog2} = pact_verifier:verify_v2(VerifierRef),
+    ct:pal("File pact verification output is ~p", [OutputLog1]),
+    ct:pal("Broker pact verification output is ~p", [OutputLog2]),
     ProviderOpts1 = ProviderOpts#{pact_source_opts => #{file_path => FilePath}},
     {ok, VerifierRef1} = pact_verifier:start_verifier(Name, ProviderOpts1),
     Output1 = pact_verifier:verify(VerifierRef1),
